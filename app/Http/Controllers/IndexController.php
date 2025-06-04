@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Message;
+use App\Events\MessageSent;
 
 class IndexController extends Controller
 {
@@ -46,8 +47,18 @@ class IndexController extends Controller
         $message = new Message();
         $message->user_id = auth()->id();
         $message->recipient_id = $id;
-        $message->message = $request->input('message'); // Use 'message' column
+        $message->message = $request->input('message');
         $message->save();
-        return redirect()->route('chat.view', ['id' => $id]);
+        $message->load('user');
+        broadcast(new MessageSent($message, $message->recipient_id))->toOthers();
+        // Return only the message data for AJAX
+        return response()->json([
+            'id' => $message->id,
+            'user_id' => $message->user_id,
+            'recipient_id' => $message->recipient_id,
+            'message' => $message->message,
+            'created_at' => $message->created_at->format('H:i'),
+            'user_name' => $message->user->name ?? 'User',
+        ]);
     }
 }
