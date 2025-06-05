@@ -19,6 +19,7 @@ public function up()
         $table->foreignId('recipient_id')->constrained('users')->onDelete('cascade'); // recipient
         $table->text('message');
         $table->string('attachment')->nullable();
+        $table->timestamp('read_at')->nullable();
         $table->timestamps();
     });
 }

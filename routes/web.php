@@ -36,6 +36,12 @@ Route::get('/send-test-event', function () {
 });
 
 
-
+Route::post('/test-upload', function(Request $request) {
+    if ($request->hasFile('attachment')) {
+        $path = $request->file('attachment')->store('test-uploads', 'public');
+        return response()->json(['path' => $path]);
+    }
+    return response()->json(['error' => 'No file'], 400);
+});
 
 require __DIR__.'/auth.php';

@@ -33,11 +33,19 @@ class ChatController extends Controller
         'attachment' => 'nullable|file|max:10240' // Max 10MB
     ]);
 
+    // Debugging - check if file is received
+    if ($request->hasFile('attachment')) {
+        \Log::info('File received: ' . $request->file('attachment')->getClientOriginalName());
+    } else {
+        \Log::info('No file received in request');
+    }
+
     $attachmentPath = null;
     if ($request->hasFile('attachment')) {
         $file = $request->file('attachment');
         $fileName = time() . '_' . $file->getClientOriginalName();
         $attachmentPath = $file->storeAs('attachments', $fileName, 'public');
+        \Log::info('File stored at: ' . $attachmentPath);
     }
 
     $message = Message::create([
@@ -47,17 +55,19 @@ class ChatController extends Controller
         'attachment' => $attachmentPath
     ]);
 
-    // Broadcast to recipient
-    broadcast(new MessageSent($message))->toOthers();
-    
-    // Broadcast to sender
-    broadcast(new MessageSent($message));
+    \Log::info('Message created with attachment path: ' . $message->attachment);
 
-    return response()->json([
-        'message' => $message->message,
-        'user_id' => Auth::id(),
-        'created_at' => $message->created_at->format('H:i'),
-        'attachment' => $attachmentPath ? Storage::url($attachmentPath) : null
-    ]);
+    // Broadcast to recipient
+    // broadcast(new MessageSent($message))->toOthers();
+    
+    // // Broadcast to sender
+    // broadcast(new MessageSent($message));
+
+    // return response()->json([
+    //     'message' => $message->message,
+    //     'user_id' => Auth::id(),
+    //     'created_at' => $message->created_at->format('H:i'),
+    //     'attachment' => $attachmentPath ? Storage::url($attachmentPath) : null
+    // ]);
 }
 } 
