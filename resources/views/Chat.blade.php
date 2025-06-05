@@ -235,8 +235,8 @@
             border-radius: 16px;
             padding: 14px 20px;
             border: none;
-            background: var(--dark-3);
-            color: var(--light);
+            background: var(--dark-2);
+            color: var(--dark-2);
             font-size: 0.95rem;
             box-shadow: none;
             transition: var(--transition);
@@ -244,7 +244,7 @@
         }
         
         .message-input::placeholder {
-            /* color: var(--light-3); */
+            color: var(--light-3);
             opacity: 0.6;
         }
         
@@ -253,8 +253,8 @@
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
             background: var(--dark-2);
-            color: var(--light); /* Ensure text is visible */
-            caret-color: var(--primary-light); /* Makes caret more visible */
+            color: var(--light); 
+            caret-color: var(--primary-light);
             transition: var(--transition);
         }
 
