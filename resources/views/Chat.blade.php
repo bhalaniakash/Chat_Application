@@ -249,14 +249,14 @@
         }
         
         .message-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-    background: var(--dark-2);
-    color: var(--light); /* Ensure text is visible */
-    caret-color: var(--primary-light); /* Makes caret more visible */
-    transition: var(--transition);
-}
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+            background: var(--dark-2);
+            color: var(--light); /* Ensure text is visible */
+            caret-color: var(--primary-light); /* Makes caret more visible */
+            transition: var(--transition);
+        }
 
         
         .send-btn {
@@ -761,19 +761,19 @@
                 });
             });
 
-            // Typing indicator simulation (show every second while typing)
-            let typingTimeout;
+            // Typing indicator simulation
             $('#messageInput').on('input', function() {
-                // Show typing indicator immediately
-                $('#typingIndicator').fadeIn();
-
-                // Clear previous timeout
-                clearTimeout(typingTimeout);
-
-                // Hide typing indicator 1 second after last input
-                typingTimeout = setTimeout(() => {
-                    $('#typingIndicator').fadeOut();
-                }, 2000);
+                if (!isTyping) {
+                    isTyping = true;
+                    // In a real app, you would send a "typing" event to the server here
+                    $('#typingIndicator').fadeIn();
+                    
+                    // Simulate the other user stopping typing after 3 seconds
+                    setTimeout(() => {
+                        $('#typingIndicator').fadeOut();
+                        isTyping = false;
+                    }, 3000);
+                }
             });
 
             // Check for new messages every 2 seconds
