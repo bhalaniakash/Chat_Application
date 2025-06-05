@@ -26,8 +26,8 @@ Route::middleware('auth')->group(function () {
 
 // Corrected dashboard route to use controller only
 Route::get('/dashboard', [IndexController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/chat/{id}', [IndexController::class, 'chat'])->name('chat.view');
-Route::post('/chat/{id}/send', [IndexController::class, 'storeMessage'])->name('chat.send');
+Route::get('/chat/{id}', [ChatController::class, 'show'])->name('chat.view');
+Route::post('/chat/{id}/send', [ChatController::class, 'send'])->name('chat.send');
 
 
 Route::get('/send-test-event', function () {

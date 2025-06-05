@@ -46,7 +46,10 @@
             background-color: #007bff;
             color: white;
         }
-       
+        small{
+            color: #6c757d;
+            
+        }
        
         </style>
 </head>
@@ -62,9 +65,7 @@
                     {{ __('Dashboard') }}
                 </h2>
             </x-slot>
-            
-          
-            
+    
             <div class="py-12">
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div class="bg-white overflow-hidden shadow-lg rounded-lg">
@@ -74,7 +75,7 @@
                                     <tr>
                                         <th scope="col">ID</th>
                                         <th scope="col">Name</th>
-                                        <th scope="col">Email</th>
+                                        <!-- <th scope="col">Email</th> -->
                                         <th scope="col">Created At</th>
                                         <th scope="col">Chat</th>
                                     </tr>
@@ -82,13 +83,13 @@
                                 <tbody>
                                     @foreach ($users as $user)
                                     <tr class="hover:bg-blue-50">
-                                    <td class="py-2 px-3">{{ $user->id }}</td>
-                                    <td class="py-2 px-3 font-semibold">{{ $user->name }}</td>
-                                    <td class="py-2 px-3">{{ $user->email }}</td>
-                                    <td class="py-2 px-3">{{ $user->created_at }}</td>
+                                    <td class="py-2 px-3">{{ $user->id }} </td>
+                                    <td class="py-2 px-3 font-semibold">{{ $user->name }} <br><i><small>{{ $user->email }}</small></i></td>
+                                    <!-- <td class="py-2 px-3">{{ $user->email }}</td> -->
+                                    <td class="py-2 px-3">{{ $user->created_at  }}</td>
                                     <td class="py-2 px-3 text-center">
                                         <a href="{{ url('chat/' . $user->id) }}" class="btn btn-outline-primary btn-sm rounded-pill">
-                                            <i class="fa fa-comments fa-lg"></i> 
+                                            <i class="fa fa-comments fa-lg"></i>
                                         </a>
                                     </td>
                                 </tr>

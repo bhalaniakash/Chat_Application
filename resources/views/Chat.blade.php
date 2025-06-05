@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chat Application</title>
+     <title>Chat Application</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -249,24 +250,32 @@
                 <div class="chat-body" id="chatBox">
                     @foreach($messages as $message)
                     <div class="chat-message {{ $message->user_id == Auth::id() ? 'sender' : 'receiver' }}">
-                        <div class="message-user">
+                        <div class="user">
                             {{ $message->user_id == Auth::id() ? 'You' : $user->name }}
                         </div>
                         <div class="message-content">
                             {{ $message->message }}
+                            @if($message->attachment)
+                                <div class="attachment mt-2">
+                                    <a href="{{ Storage::url($message->attachment) }}" target="_blank" class="btn btn-sm btn-light">
+                                        <i class="fas fa-paperclip"></i> Attachment
+                                    </a>
+                                </div>
+                            @endif
                         </div>
-                        <div class="message-time">
-                            {{ $message->created_at->format('h:i A') }}
+                        <div class="time">
+                            {{ $message->created_at->format('H:i') }}
                         </div>
                     </div>
                     @endforeach
                 </div>
                 
                 <div class="chat-footer">
-                    <form id="chatForm" method="POST" action="{{ route('chat.send', ['id' => $user->id]) }}" class="message-form">
+                    <form id="chatForm" method="POST" action="{{ route('chat.send', ['id' => $user->id]) }}" class="message-form" enctype="multipart/form-data">
                         @csrf
                         <input type="hidden" name="recipient_id" value="{{ $user->id }}">
                         <input type="text" name="message" id="messageInput" class="form-control message-input" placeholder="Type your message..." required autocomplete="off">
+                        <input type="file" name="attachment" id="attachmentInput" class="form-control" style="max-width: 200px;">
                         <button class="btn btn-primary send-btn" type="submit">
                             Send <i class="fas fa-paper-plane"></i>
                         </button>
@@ -282,74 +291,78 @@
             const chatBox = $('#chatBox');
             scrollToBottom(); // Initial scroll to bottom
             
-            // Handle form submission
             $('#chatForm').on('submit', function(e) {
                 e.preventDefault();
+
                 const form = $(this);
                 const messageInput = $('#messageInput');
                 const message = messageInput.val().trim();
-                
-                if (message === '') return;
-                
+                const attachmentInput = $('#attachmentInput')[0];
+
+                // Allow if either message OR file is present
+                if (!message && (!attachmentInput.files || attachmentInput.files.length === 0)) {
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
+                formData.append('message', message);
+                formData.append('recipient_id', $('input[name="recipient_id"]').val());
+
+                if (attachmentInput.files && attachmentInput.files.length > 0) {
+                    formData.append('attachment', attachmentInput.files[0]);
+                }
+
                 $.ajax({
                     url: form.attr('action'),
                     method: 'POST',
-                    data: form.serialize(),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     beforeSend: function() {
-                        // Disable input and button while sending
                         messageInput.prop('disabled', true);
                         form.find('button').prop('disabled', true);
                     },
-                    success: function() {
-                        messageInput.val(''); // Clear input
-                        fetchMessages(); // Fetch updated messages
+                    success: function(response) {
+                        fetchMessages();
+                        messageInput.val('');
+                        attachmentInput.value = '';
                     },
-                    // error: function(err) {
-                    //     console.error('Message sending failed:', err);
-                    //     alert('Failed to send message. Please try again.');
-                    // },
+                    error: function(xhr) {
+                        console.error("Error:", xhr.responseText);
+                    },
                     complete: function() {
-                        // Re-enable input and button
                         messageInput.prop('disabled', false).focus();
                         form.find('button').prop('disabled', false);
                     }
                 });
             });
-            
-            // Fetch messages every 2 seconds
+
             setInterval(fetchMessages, 2000);
-            
-            // Auto-scroll when user is near bottom
+
             chatBox.on('scroll', function() {
                 const isNearBottom = chatBox[0].scrollHeight - chatBox.scrollTop() <= chatBox.outerHeight() + 100;
                 chatBox.data('auto-scroll', isNearBottom);
             });
-            
+
             function fetchMessages() {
                 $.get("{{ route('chat.view', ['id' => $user->id]) }}", function(data) {
                     const newContent = $(data).find('#chatBox').html();
                     const shouldScroll = chatBox.data('auto-scroll') !== false;
                     
-                    // Only update if content has changed
                     if (newContent !== chatBox.html()) {
                         chatBox.html(newContent);
-                        
-                        if (shouldScroll) {
-                            scrollToBottom();
-                        }
+                        if (shouldScroll) scrollToBottom();
                     }
-                }).fail(function(err) {
-                    console.error('Error fetching messages:', err);
                 });
             }
-            
+
             function scrollToBottom() {
                 chatBox.stop().animate({
                     scrollTop: chatBox[0].scrollHeight
                 }, 300);
             }
-            
-            // Focus input on page load
+
             $('#messageInput').focus();
         });
 
