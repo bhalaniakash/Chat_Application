@@ -598,7 +598,7 @@
                 <div class="chat-body" id="chatBox">
                     <!-- Date marker example -->
                     <div class="message-date">
-                        Today
+                        {{ \Carbon\Carbon::now()->format('F j, Y') }}
                     </div>
                     
                     @foreach($messages as $message)
@@ -609,7 +609,7 @@
                         </div>
                         <div class="message-content">
                             {{ $message->message }}
-                            @if($message->attachment)
+                            @if($message->attachment)   
                                 <div class="attachment">
                                     <a href="{{ Storage::url($message->attachment) }}" target="_blank">
                                         <i class="fas fa-paperclip attachment-icon"></i>

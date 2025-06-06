@@ -42,21 +42,32 @@ class IndexController extends Controller
     public function storeMessage(Request $request, $id)
     {
         $request->validate([
-            'message' => 'required|string',
+            'message' => 'required_without:attachment|string|nullable',
+            'attachment' => 'nullable|file|max:10240', // max 10MB
         ]);
+
         $message = new Message();
         $message->user_id = auth()->id();
         $message->recipient_id = $id;
         $message->message = $request->input('message');
+
+        // Handle attachment upload
+        if ($request->hasFile('attachment')) {
+            $path = $request->file('attachment')->store('attachments', 'public');
+            $message->attachment = $path;
+        }
+
         $message->save();
         $message->load('user');
         broadcast(new MessageSent($message, $message->recipient_id))->toOthers();
-        // Return only the message data for AJAX
+
+        // Return message data for AJAX
         return response()->json([
             'id' => $message->id,
             'user_id' => $message->user_id,
             'recipient_id' => $message->recipient_id,
             'message' => $message->message,
+            'attachment' => $message->attachment ?? null,
             'created_at' => $message->created_at->format('H:i'),
             'user_name' => $message->user->name ?? 'User',
         ]);

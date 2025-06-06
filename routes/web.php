@@ -27,21 +27,13 @@ Route::middleware('auth')->group(function () {
 // Corrected dashboard route to use controller only
 Route::get('/dashboard', [IndexController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/chat/{id}', [ChatController::class, 'show'])->name('chat.view');
-Route::post('/chat/{id}/send', [ChatController::class, 'send'])->name('chat.send');
+// Route::post('/chat/{id}/send', [ChatController::class, 'send'])->name('chat.send');
+Route::post('/chat/{id}', [ChatController::class, 'send'])->name('chat.send');
 
 
 Route::get('/send-test-event', function () {
     event(new TestEvent('Hello from Laravel Reverb'));
     return 'Event dispatched!';
-});
-
-
-Route::post('/test-upload', function(Request $request) {
-    if ($request->hasFile('attachment')) {
-        $path = $request->file('attachment')->store('test-uploads', 'public');
-        return response()->json(['path' => $path]);
-    }
-    return response()->json(['error' => 'No file'], 400);
 });
 
 require __DIR__.'/auth.php';

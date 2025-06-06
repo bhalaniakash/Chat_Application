@@ -30,7 +30,7 @@ class ChatController extends Controller
     $request->validate([
         'message' => 'required_without:attachment|string|max:1000',
         'recipient_id' => 'required|exists:users,id',
-        'attachment' => 'nullable|file|max:10240' // Max 10MB
+        'attachment' => 'nullable|file' 
     ]);
 
     // Debugging - check if file is received
@@ -47,19 +47,19 @@ class ChatController extends Controller
         $attachmentPath = $file->storeAs('attachments', $fileName, 'public');
         \Log::info('File stored at: ' . $attachmentPath);
     }
-
+    
     $message = Message::create([
         'user_id' => Auth::id(),
         'recipient_id' => $request->recipient_id,
         'message' => $request->message ?? '',
         'attachment' => $attachmentPath
-    ]);
+        
+    ]); 
 
     \Log::info('Message created with attachment path: ' . $message->attachment);
 
     // Broadcast to recipient
     // broadcast(new MessageSent($message))->toOthers();
-    
     // // Broadcast to sender
     // broadcast(new MessageSent($message));
 
@@ -67,7 +67,9 @@ class ChatController extends Controller
     //     'message' => $message->message,
     //     'user_id' => Auth::id(),
     //     'created_at' => $message->created_at->format('H:i'),
-    //     'attachment' => $attachmentPath ? Storage::url($attachmentPath) : null
+    //     'attachment' => $attachmentPath ? Storage::url($attachmentPath) : null,
+    //     'attachment_name' => $attachmentPath ? basename($attachmentPath) : null
     // ]);
+    return back()->with('success', 'File uploaded successfully.');
 }
-} 
+}
