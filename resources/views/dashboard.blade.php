@@ -401,6 +401,36 @@
                 justify-content: center;
             }
         }
+
+        /* Add these new styles for dropdown */
+        .dropdown-item {
+            transition: var(--transition);
+            padding: 0.75rem 1.5rem;
+        }
+
+        .dropdown-item:hover {
+            background: var(--glass-2);
+            color: var(--primary-light) !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+            border-color: var(--glass);
+        }
+
+        .dropdown-menu {
+            padding: 0.5rem 0;
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -411,90 +441,121 @@
         <div class="bg-element bg-element-3"></div>
     </div>
 
-    <x-app-layout>
-        <div class="dashboard-container">
-            <div class="dashboard-header">
-                <div class="header-content">
-                    <h2>
-                        <i class="fas fa-users"></i>
-                        {{ __('Dashboard') }}
-                    </h2>
-                    <div class="header-stats">
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <i class="fas fa-user-friends"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-value">{{ count($users) }}</span>
-                                <span class="stat-label">Total Users</span>
-                            </div>
+    <!-- Custom Header -->
+    <nav class="navbar navbar-expand-lg" style="background: var(--dark-2); padding: 1rem 2rem; border-bottom: 1px solid var(--glass);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ route('dashboard') }}" style="color: var(--light); font-size: 1.5rem; font-weight: 600;">
+                <i class="fas fa-comments me-2"></i>Chat App
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--light); background: var(--glass); border: 1px solid var(--glass-2);">
+                        <i class="fas fa-user-circle me-2"></i>{{ Auth::user()->name }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="background: var(--dark-2); border: 1px solid var(--glass);">
+                        <li>
+                            <a href="{{ route('profile.edit') }}" class="dropdown-item" style="color: var(--light);">
+                                <i class="fas fa-user-cog me-2"></i>Profile Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider" style="border-color: var(--glass);"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item" style="color: var(--light);">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="header-content">
+                <h2>
+                    <i class="fas fa-users"></i>
+                    {{ __('Dashboard') }}
+                </h2>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-friends"></i>
                         </div>
-                        <div class="stat-item">
-                            <div class="stat-icon">
-                                <i class="fas fa-comments"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-value">{{ count($users) - 1 }}</span>
-                                <span class="stat-label">Active Chats</span>
-                            </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ count($users) }}</span>
+                            <span class="stat-label">Total Users</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ count($users) - 1 }}</span>
+                            <span class="stat-label">Active Chats</span>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="search-box">
-                
-                <input type="text" class="search-input" placeholder="Search users..." id="searchInput">
-            </div>
-
-            <div class="users-table">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Joined</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($users as $user)
-                        <tr>
-                            <td>
-                                <span class="user-id">#{{ $user->id }}</span>
-                            </td>
-                            <td>
-                                <div class="user-info">
-                                    <div class="user-avatar">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                                    </div>
-                                    <div class="user-details">
-                                        <span class="user-name">{{ $user->name }}</span>
-                                        <span class="user-email">{{ $user->email }}</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="user-date">
-                                    <i class="far fa-calendar-alt"></i>
-                                    {{ $user->created_at->format('M d, Y') }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ url('chat/' . $user->id) }}" class="chat-btn">
-                                    <i class="fas fa-comments"></i>
-                                    Chat
-                                </a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
         </div>
-    </x-app-layout>
+
+        <div class="search-box">
+            
+            <input type="text" class="search-input" placeholder="Search users..." id="searchInput">
+        </div>
+
+        <div class="users-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Joined</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($users as $user)
+                    <tr>
+                        <td>
+                            <span class="user-id">#{{ $user->id }}</span>
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">{{ $user->name }}</span>
+                                    <span class="user-email">{{ $user->email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="user-date">
+                                <i class="far fa-calendar-alt"></i>
+                                {{ $user->created_at->format('M d, Y') }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url('chat/' . $user->id) }}" class="chat-btn">
+                                <i class="fas fa-comments"></i>
+                                Chat
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
             // Search functionality

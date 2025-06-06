@@ -236,7 +236,7 @@
             padding: 14px 20px;
             border: none;
             background: var(--dark-2);
-            color: var(--dark-2);
+            color: var(--dark);
             font-size: 0.95rem;
             box-shadow: none;
             transition: var(--transition);
@@ -566,6 +566,36 @@
             left: 30%;
             animation: float 12s ease-in-out infinite alternate;
         }
+
+        /* Add these new styles for dropdown */
+        .dropdown-item {
+            transition: var(--transition);
+            padding: 0.75rem 1.5rem;
+        }
+
+        .dropdown-item:hover {
+            background: var(--glass-2);
+            color: var(--primary-light) !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-item i {
+            transition: var(--transition);
+        }
+
+        .dropdown-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+            border-color: var(--glass);
+        }
+
+        .dropdown-menu {
+            padding: 0.5rem 0;
+            min-width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -576,111 +606,142 @@
         <div class="bg-element bg-element-3"></div>
     </div>
 
-    <x-app-layout>
-        <div class="container chat-container">
-            <div class="chat-card">
-                <div class="chat-header">
-                    <h4>
-                        <i class="fas fa-comment-dots"></i>
-                        Chat with {{ $user->name }}
-                    </h4>
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            {{ strtoupper(substr($user->name, 0, 1)) }}
-                        </div>
-                        <span class="user-badge">
-                            <i class="fas fa-user"></i>
-                            {{ Auth::user()->name }}
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="chat-body" id="chatBox">
-                    <!-- Date marker example -->
-                    <div class="message-date">
-                        {{ \Carbon\Carbon::now()->format('F j, Y') }}
-                    </div>
-                    
-                    @foreach($messages as $message)
-                    <div class="chat-message {{ $message->user_id == Auth::id() ? 'sender' : 'receiver' }}">
-                        <div class="message-user">
-                            <i class="fas fa-user-circle"></i>
-                            {{ $message->user_id == Auth::id() ? 'You' : $user->name }}
-                        </div>
-                        <div class="message-content">
-                            {{ $message->message }}
-                            @if($message->attachment)   
-                                <div class="attachment">
-                                    <a href="{{ Storage::url($message->attachment) }}" target="_blank">
-                                        <i class="fas fa-paperclip attachment-icon"></i>
-                                        <span>View Attachment</span>
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="message-time">
-                            <i class="far fa-clock"></i>
-                            {{ $message->created_at->format('H:i') }}
-                            @if($message->user_id == Auth::id())
-                                <span class="message-status status-read">
-                                    <i class="fas fa-check-double"></i>
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                    @endforeach
-                    
-                    <!-- Typing indicator example (can be toggled with JS) -->
-                    <div class="chat-message receiver" id="typingIndicator" style="display: none;">
-                        <div class="message-user">
-                            <i class="fas fa-user-circle"></i>
-                            {{ $user->name }}
-                        </div>
-                        <div class="typing-indicator">
-                            <div class="typing-dots">
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                                <div class="typing-dot"></div>
-                            </div>
-                            <div class="typing-text">typing...</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button class="scroll-to-bottom" id="scrollToBottom" title="Scroll to bottom">
-                    <i class="fas fa-arrow-down"></i>
-                </button>
-                
-                <div class="chat-footer">
-                    <form id="chatForm" method="POST" action="{{ route('chat.send', ['id' => $user->id]) }}" class="message-form" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="recipient_id" value="{{ $user->id }}">
-                        
-                        <button type="button" class="action-btn" onclick="document.getElementById('attachmentInput').click()" title="Attach file">
-                            <i class="fas fa-paperclip"></i>
-                        </button>
-                        <input type="file" name="attachment" id="attachmentInput" class="form-control">
-                        
-                        <input type="text" name="message" id="messageInput" class="form-control message-input" placeholder="Type your message..." autocomplete="off">
-                        
-                        <button class="send-btn" type="submit" id="sendButton">
-                            Send <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                    
-                    <div class="attachment-preview" id="attachmentPreview">
-                        <div class="file-info">
-                            <i class="fas fa-file file-icon"></i>
-                            <span id="fileName"></span>
-                        </div>
-                        <i class="fas fa-times remove-attachment" onclick="removeAttachment()"></i>
-                    </div>
+    <!-- Custom Header -->
+    <nav class="navbar navbar-expand-lg" style="background: var(--dark-2); padding: 1rem 2rem; border-bottom: 1px solid var(--glass);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ route('dashboard') }}" style="color: var(--light); font-size: 1.5rem; font-weight: 600;">
+                <i class="fas fa-comments me-2"></i>Chat App
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: var(--light); background: var(--glass); border: 1px solid var(--glass-2);">
+                        <i class="fas fa-user-circle me-2"></i>{{ Auth::user()->name }}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="background: var(--dark-2); border: 1px solid var(--glass);">
+                        <li>
+                            <a href="{{ route('profile.edit') }}" class="dropdown-item" style="color: var(--light);">
+                                <i class="fas fa-user-cog me-2"></i>Profile Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider" style="border-color: var(--glass);"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item" style="color: var(--light);">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-    </x-app-layout>
+    </nav>
+
+    <div class="container chat-container">
+        <div class="chat-card">
+            <div class="chat-header">
+                <h4>
+                    <i class="fas fa-comment-dots"></i>
+                    Chat with {{ $user->name }}
+                </h4>
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                    <span class="user-badge">
+                        <i class="fas fa-user"></i>
+                        {{ Auth::user()->name }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="chat-body" id="chatBox">
+                <!-- Date marker example -->
+                <div class="message-date">
+                    Today
+                </div>
+                
+                @foreach($messages as $message)
+                <div class="chat-message {{ $message->user_id == Auth::id() ? 'sender' : 'receiver' }}">
+                    <div class="message-user">
+                        <i class="fas fa-user-circle"></i>
+                        {{ $message->user_id == Auth::id() ? 'You' : $user->name }}
+                    </div>
+                    <div class="message-content">
+                        {{ $message->message }}
+                        @if($message->attachment)
+                            <div class="attachment">
+                                <a href="{{ Storage::url($message->attachment) }}" target="_blank">
+                                    <i class="fas fa-paperclip attachment-icon"></i>
+                                    <span>View Attachment</span>
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="message-time">
+                        <i class="far fa-clock"></i>
+                        {{ $message->created_at->format('H:i') }}
+                        @if($message->user_id == Auth::id())
+                            <span class="message-status status-read">
+                                <i class="fas fa-check-double"></i>
+                            </span>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+                
+                <!-- Typing indicator example (can be toggled with JS) -->
+                <div class="chat-message receiver" id="typingIndicator" style="display: none;">
+                    <div class="message-user">
+                        <i class="fas fa-user-circle"></i>
+                        {{ $user->name }}
+                    </div>
+                    <div class="typing-indicator">
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                        <div class="typing-text">typing...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="scroll-to-bottom" id="scrollToBottom" title="Scroll to bottom">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+            
+            <div class="chat-footer">
+                <form id="chatForm" method="POST" action="{{ route('chat.send', ['id' => $user->id]) }}" class="message-form" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" name="recipient_id" value="{{ $user->id }}">
+                    
+                    <button type="button" class="action-btn" onclick="document.getElementById('attachmentInput').click()" title="Attach file">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <input type="file" name="attachment" id="attachmentInput" class="form-control">
+                    
+                    <input type="text" name="message" id="messageInput" class="form-control message-input" placeholder="Type your message..." autocomplete="off">
+                    
+                    <button class="send-btn" type="submit" id="sendButton">
+                        Send <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                
+                <div class="attachment-preview" id="attachmentPreview">
+                    <div class="file-info">
+                        <i class="fas fa-file file-icon"></i>
+                        <span id="fileName"></span>
+                    </div>
+                    <i class="fas fa-times remove-attachment" onclick="removeAttachment()"></i>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
             const chatBox = $('#chatBox');
